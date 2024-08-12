@@ -56,6 +56,11 @@ def load_configuration():
     # Put 'nomatch' at the beginning of all model lists
     loaded_configuration['models'] = \
         ['nomatch'] + loaded_configuration['models']
+    if len(loaded_configuration['models']) != 2:
+        # TODO: This requires:
+        # - collate_fn(?) should skip when an unexpected directory is found
+        # - net = M5(n_input=transformed.shape[0], n_output=len(label2idx))
+        raise Exception('Only ONE model is currently supported.')
 
     # Configure logging
     log = logging.getLogger()

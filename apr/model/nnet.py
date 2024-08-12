@@ -70,17 +70,17 @@ class NoiseDataset(torch.utils.data.Dataset):
         self.label2index = {m: i for i, m in enumerate(models)}
 
     def _compute_mean(self):
-        meanstd_file = pathlib.Path(apr.config.get('workspace')) / 'mean.pth'
+        meanstd_file = pathlib.Path(apr.config.get('workspace')) / '_mean.pth'
         if meanstd_file.exists():
             meanstd = torch.load(meanstd_file)
         else:
-            logging.debug('==> compute mean')
+            logging.debug('computing _mean.pth')
             mean = torch.zeros(self.n_input)
             std = torch.zeros(self.n_input)
             cnt = 0
             for path in self.audio_list:
                 cnt += 1
-                logging.debug(f'{cnt} | {len(self.audio_list)}')
+                logging.debug(f' {cnt} | {len(self.audio_list)}')
 
                 wv, _ = torchaudio.load(path)
                 if wv.shape[0] > 1:

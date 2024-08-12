@@ -22,7 +22,7 @@ class AudioClassifier:
 
         # Data locations
         self.workspace = pathlib.Path(apr.config.get('workspace'))
-        self.model_path = self.workspace / 'model_nnet.pth'
+        self.model_path = self.workspace / 'model.pth'
         self.training_data = self.workspace / 'train'
         self.testing_data = self.workspace / 'test'
         self._primed = False
