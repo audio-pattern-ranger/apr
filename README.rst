@@ -43,14 +43,3 @@ How It Works
 5. Detect noises in collected recordings
 6. Manually review the generated report
 7. Refine model with additional training
-
-Dependencies
-------------
-
-Debian::
-
-    # Required
-    apt-get install python3-fasteners ffmpeg v4l-utils
-
-    # Recommended
-    apt-get install fonts-freefont-ttf

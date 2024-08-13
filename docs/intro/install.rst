@@ -3,8 +3,7 @@
 Installation
 ============
 
-APR can be installed on any unix-like system supporting Python 3.
-
+APR can be installed on any OS supporting Python 3 and PyTorch.
 
 Debian Dependencies
 -------------------
@@ -16,7 +15,7 @@ Needed by **all**:
     sudo apt install ffmpeg v4l-utils \
         python3-yaml python3-pydub python3-torch python3-torchaudio
 
-Needed to :ref:`**monitor** <record>`:
+Needed to :ref:`**monitor** <recording>`:
 
   .. code-block:: sh
 
@@ -24,7 +23,7 @@ Needed to :ref:`**monitor** <record>`:
     # Font is optional; used by record_cam_timestamp in config.yml
     sudo apt install fonts-freefont-ttf
 
-Needed to :ref:`inspect and train <train>`:
+Needed to :ref:`inspect and train <training>`:
 
   .. code-block:: sh
 

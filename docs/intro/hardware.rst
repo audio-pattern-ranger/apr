@@ -6,7 +6,7 @@ Hardware Setup
 This is project is designed so that training takes place on a laptop/desktop
 computer and the remainder will be deployed to a recording device.
 
-.. _train:
+.. _training:
 
 Training Device
 ---------------
@@ -15,7 +15,7 @@ The cheapest laptop that can be found at any big box store should be more
 than powerful enough for our needs. Training speed /may/ be increased with
 a cuda-compatible device, but will ultimately provide identical results.
 
-.. _record:
+.. _recording:
 
 Recording Device
 ----------------

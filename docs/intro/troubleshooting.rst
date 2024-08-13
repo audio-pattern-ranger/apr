@@ -33,7 +33,6 @@ Replace ``python3`` with ``pudb3`` to use:
 
     pudb3 -m apr -a monitor
 
-
 Pip Space
 ---------
 
@@ -79,6 +78,7 @@ This error shows up because unexpected directories were found in data
 directories.
 
   .. code-block:: text
+
     File "/home/michael/repos/audio_pattern_ranger/apr/model/nnet.py", line 110, in __getitem__
       label = self.label2index[class_name]
               ~~~~~~~~~~~~~~~~^^^^^^^^^^^^

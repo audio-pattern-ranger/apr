@@ -5,22 +5,41 @@ How to Use APR
 
 APR is essentially broken into four phases:
 
-  1. Data Collection (monitor without model)
-  2. Data Analysis (inspection)
-  3. Model Training (train)
-  4. Auto Analysis (monitor with model)
+1. :ref:`Data Collection <collect>` (monitor without model)
 
-View help text:
+    .. image:: /images/monitor.webp
+       :alt: Running monitor with file display
+       :width: 90%
 
-  .. code-block:: sh
+2. :ref:`Data Analysis <analyze>` (inspection)
 
-    python3 -m apr --help
+    .. image:: /images/inspector.webp
+       :alt: Inspection GUI
+       :width: 90%
+
+3. :ref:`Model Training <train>` (train)
+
+    .. image:: /images/train.webp
+       :alt: Training the model
+       :width: 90%
+
+4. :ref:`Content Inspection <inspect>` (monitor with model)
+
+    .. image:: /images/inspector.webp
+       :alt: Inspection GUI
+       :width: 90%
+
+5. (optional) :ref:`Collect <collect>` and :ref:`analyze <analyze>` more data
+   in order to :ref:`re-train <train>` the model and increase :ref:`detection
+   <inspect>` accuracy.
+
+.. _collect:
 
 Data Collection
 ---------------
 
 The entire process starts with collecting some initial data. This data should be
-collected from :ref:`the recording device <record>` using the same hardware and
+collected from :ref:`the recording device <recording>` using the same hardware and
 recording settings that will be used for regular analysis.
 
 Begin continuous recording with:
@@ -52,6 +71,8 @@ Recordings will be saved to ``./_workspace/rotating/``.
    Clapping hands together is a great demonstration exercise. This can be set
    in ``config.yml`` with ``models: [clap]``.
 
+.. _analyze:
+
 Data Analysis
 -------------
 
@@ -80,8 +101,8 @@ as an example:
     quality of each ML iteration.
 
 Once data is collected, it can be retrieve from ``_workspace/rotating`` on the
-:ref:`recording device <record>` and copied to the same ``_workspace/rotating``
-location on the :ref:`device used for training <train>`.
+:ref:`recording device <recording>` and copied to the same ``_workspace/rotating``
+location on the :ref:`device used for training <training>`.
 
 **Testing Data:**
 
@@ -123,6 +144,8 @@ Keyboard Shortcuts:
   - Home/End: Navigate to start or end
   - Up: Replay audio clip
 
+.. _train:
+
 Model Training
 --------------
 
@@ -140,7 +163,7 @@ with:
 
     python3 -m apr -a train
 
-This will continue unti ``target_accuracy`` (from ``config.yml``) is met.
+This will continue until ``target_accuracy`` (from ``config.yml``) is met.
 
   .. code-block:: text
 
@@ -160,3 +183,15 @@ This will continue unti ``target_accuracy`` (from ``config.yml``) is met.
     INFO:Overall accuracy[12] is 86.36363636363637
     INFO:Accuracy increased; keeping new model
     INFO:TRAINING COMPLETE :: Final Accuracy: 86.36363636363637
+
+The final products of this training process are ``model.pth`` and ``model.wav``.
+These two files can be copied into another workspace and then used for
+:ref:`inspection (detection) <inspect>`.
+
+.. _inspect:
+
+Content Inspection
+------------------
+
+Monitor and Inspect
+

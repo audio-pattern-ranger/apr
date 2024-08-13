@@ -2,6 +2,7 @@
 '''
 Primary entry point
 '''
+import logging
 import os
 import importlib
 
@@ -32,7 +33,14 @@ def main():
     router = importlib.import_module(f'apr.{selected_action}')
     if not router:
         raise Exception('Unable to load selected action!')
-    router.entry_point()
+    try:
+        router.entry_point()
+    except KeyboardInterrupt:
+        # Notify of possibly-incomplete job
+        if selected_action == 'monitor':
+            logging.warning('^C pressed; Final video may be corrupt')
+        # Exit gracefully when requested
+        pass
 
 
 if __name__ == '__main__':

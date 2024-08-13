@@ -61,4 +61,4 @@ Getting Started
   0. :ref:`Hardware <hardware>`
   1. :ref:`Install APR <installation>`
   2. :ref:`Configure <configuration>`
-  3. :ref:`Basic Usage <usage>`
+  3. :ref:`Usage (Tutorial) <usage>`

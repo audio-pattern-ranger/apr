@@ -58,4 +58,13 @@ def parser():
         action='store_true',
         help='Stop a running daemon immediately; will corrupt video')
 
+    # Options for Inspect
+    monitor = parser.add_argument_group('inspect')
+    monitor.add_argument(
+        '-i',
+        dest='inspect_path',
+        metavar='<dir>',
+        type=str,
+        help='Directory to scan for .wav files matching model tags')
+
     return parser

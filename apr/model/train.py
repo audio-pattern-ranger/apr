@@ -3,6 +3,7 @@ Train a Machine Learning Model
 '''
 import logging
 import pathlib
+import shutil
 import torch
 import torchaudio
 
@@ -15,7 +16,7 @@ class AudioClassifier:
     '''
     TODO
     '''
-    def __init__(self, sample_clip=None):
+    def __init__(self):
         # Check for cuda
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         logging.debug(f'Backend: {self.device}')
@@ -30,8 +31,8 @@ class AudioClassifier:
 
         # Tuning options
         self.batch_size = 1
-        self.learning_rate = 0.001
         self.momentum = 0.9
+        self.learning_rate = 0.001
         self.target_accuracy = apr.config.get('target_accuracy')
 
         # Models (search labels)
@@ -55,17 +56,24 @@ class AudioClassifier:
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(
                 self.optimizer, milestones=[10, 30], gamma=0.1)
 
-        # Sample first available clip
-        if not sample_clip:
-            sample_clip = next((self.training_data / 'nomatch').glob('*.wav'))
-        logging.debug(f'Loading sample rate from {sample_clip}')
-        self._load_sample(sample_clip)
+        # Load a sample clip to build transformation
+        self._load_sample()
 
-    def _load_sample(self, path):
+    def _load_sample(self):
         '''
         Sample the first available input clip
         '''
-        wv, srate = torchaudio.load(path)
+        sample_clip = self.workspace / 'model.wav'
+
+        # Grab the first available clip if sample does not exist
+        if not sample_clip.exists():
+            demo_clip = next((self.training_data / 'nomatch').glob('*.wav'))
+            shutil.copy(demo_clip, sample_clip)
+            logging.debug(f'Generated model.wav sample from {demo_clip}')
+
+        # Load sample into the transformation engine
+        logging.debug(f'Generated model.wav sample from {sample_clip}')
+        wv, srate = torchaudio.load(sample_clip)
         self.transform_train = [
             torchaudio.transforms.Resample(orig_freq=srate, new_freq=16000),
             ]
@@ -111,6 +119,7 @@ class AudioClassifier:
 
         # Continue training until desired threshold is met
         iteration = 0
+        last_accuracy = [0, 0]  # [accuracy, count]
         while avg_best < float(self.target_accuracy):
             iteration += 1
 
@@ -135,6 +144,15 @@ class AudioClassifier:
                 avg_best = sum(best.values()) / len(best)
             else:
                 logging.info(f'Accuracy worse than #{best_i}; discarding new')
+
+            # Check for an infinite loop (if target_accuracy cannot be met)
+            if sum(accuracy.values()) != last_accuracy[0]:
+                last_accuracy = [sum(accuracy.values()), 0] 
+            else:
+                last_accuracy[1] += 1
+                if last_accuracy[1] >= 10:
+                    logging.warning('New accuracy unchanged for 10 iterations')
+                    break
 
         logging.info(f'TRAINING COMPLETE :: Final Accuracy: {avg_best}')
 
