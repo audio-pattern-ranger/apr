@@ -15,15 +15,14 @@ Needed by **all**:
     sudo apt install ffmpeg v4l-utils \
         python3-yaml python3-pydub python3-torch python3-torchaudio
 
-Needed to :ref:`**monitor** <recording>`:
+Needed to :ref:`monitor <recording>`:
 
   .. code-block:: sh
 
-    sudo apt install python3-fasteners
     # Font is optional; used by record_cam_timestamp in config.yml
-    sudo apt install fonts-freefont-ttf
+    sudo apt install python3-fasteners fonts-freefont-ttf
 
-Needed to :ref:`review and train <training>`:
+Needed to :ref:`tag training data <review>`:
 
   .. code-block:: sh
 

@@ -63,7 +63,8 @@ def parser():
     monitor.add_argument(
         '-i',
         dest='inspect_path',
-        metavar='<dir>',
+        metavar='<path>',
+        default="(missing -i)",
         type=str,
         help='Directory to scan for .wav files matching model tags')
 

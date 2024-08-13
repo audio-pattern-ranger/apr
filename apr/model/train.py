@@ -26,6 +26,7 @@ class AudioClassifier:
         self.model_path = self.workspace / 'model.pth'
         self.training_data = self.workspace / 'train'
         self.testing_data = self.workspace / 'test'
+        self.sample_rate = None
         self._primed = False
         self._loaders = {}
 
@@ -71,15 +72,22 @@ class AudioClassifier:
             shutil.copy(demo_clip, sample_clip)
             logging.debug(f'Generated model.wav sample from {demo_clip}')
 
-        # Load sample into the transformation engine
+        # Load sample for the transformation engine
         logging.debug(f'Generated model.wav sample from {sample_clip}')
-        wv, srate = torchaudio.load(sample_clip)
-        self.transform_train = [
-            torchaudio.transforms.Resample(orig_freq=srate, new_freq=16000),
-            ]
-        for tr in self.transform_train:
-            wv = tr(wv)
-        self.waveform = wv
+        self.waveform, self.sample_rate = self.load_audio(sample_clip)
+
+    def load_audio(self, file_path):
+        '''
+        Load audio and transform to mono channel
+        '''
+        wv, sample_rate = torchaudio.load(file_path)
+        # Convert multiple channels to mono
+        if wv.shape[0] > 1:
+            wv = wv.mean(dim=0, keepdim=True)
+        transform = torchaudio.transforms.Resample(
+                orig_freq=sample_rate, new_freq=16000)
+        transformed = transform(wv)
+        return (transformed, sample_rate)
 
     def get_loader(self, data):
         '''
@@ -93,7 +101,8 @@ class AudioClassifier:
         path = getattr(self, data)
         dataset = apr.model.nnet.NoiseDataset(
                 root_dir=path, models=self.models,
-                transform=self.transform_train)
+                transform=[torchaudio.transforms.Resample(
+                    orig_freq=self.sample_rate, new_freq=16000)])
         loader = torch.utils.data.DataLoader(
                 dataset, batch_size=self.batch_size,
                 shuffle=True, collate_fn=collate_fn)
@@ -147,7 +156,7 @@ class AudioClassifier:
 
             # Check for an infinite loop (if target_accuracy cannot be met)
             if sum(accuracy.values()) != last_accuracy[0]:
-                last_accuracy = [sum(accuracy.values()), 0] 
+                last_accuracy = [sum(accuracy.values()), 0]
             else:
                 last_accuracy[1] += 1
                 if last_accuracy[1] >= 10:

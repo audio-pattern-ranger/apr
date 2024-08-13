@@ -23,7 +23,7 @@ def extract_audio(audio_file, output):
     Split a wav file into 1-second clips.
     '''
     # Extract .wav from .mkv and "fix" sync rate
-    if audio_file.endswith('.mkv'):
+    if str(audio_file).endswith('.mkv'):
         subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', audio_file,
                         '-vn', '-c:a', 'pcm_s16le', '-af', 'aresample=async=1',
                         f'{output}/.audio.wav'])

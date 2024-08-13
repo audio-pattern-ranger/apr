@@ -3,7 +3,7 @@
 How to Use APR
 ==============
 
-APR is essentially broken into four phases:
+APR is essentially broken into ...
 
 1. :ref:`Data Collection <collect>` (monitor without model)
 
@@ -23,16 +23,17 @@ APR is essentially broken into four phases:
        :alt: Training the model
        :width: 90%
 
-4. :ref:`Content Inspection <inspect>` (monitor with model)
+4. :ref:`Manual Inspection <inspect>` (interact with model)
 
-   # TODO
-   #    .. image:: /images/inspect_auto.webp
-   #       :alt: Inspection GUI
-   #       :width: 90%
+    .. image:: /images/inspect_dir.webp
+       :alt: Inspect run on a directory with tagged videos
+       :width: 90%
 
-5. (optional) :ref:`Collect <collect>` and :ref:`review <review>` more data
-   in order to :ref:`re-train <train>` the model and increase :ref:`detection
-   <inspect>` accuracy.
+5. :ref:`Automatic Reporting <report>` (monitor with model)
+
+#    .. image:: /images/report.webp
+#       :alt: TODO
+#       :width: 90%
 
 .. _collect:
 
@@ -191,12 +192,40 @@ These two files can be copied into another workspace and then used for
 
 .. _inspect:
 
-Content Inspection
+Manual Inspection
 ------------------
 
-Monitor and Inspect
+After ``model.{pth,wav}`` are generated, the ``inspect`` action can be used to
+manually review individual video (``.mkv``) files.
 
-   # TODO
-   #    .. image:: /images/inspect_manual.webp
-   #       :alt: Inspection GUI
-   #       :width: 90%
+    .. code-block:: sh
+
+       python3 -m apr -a inspect -i $path_to_mkv
+
+This returns a list of frames where the trained noise was detected.
+
+    .. image:: /images/inspect_single.webp
+       :alt: Inspect run on a single file
+       :width: 90%
+
+These frames can then be reviewed/tagged using :ref:`the review utility <review>`
+and then used :ref:`train <train>` an improved model.
+
+.. _report:
+
+Automatic Reporting
+-------------------
+
+TODO
+
+.. _retrain:
+
+Further Improvements
+--------------------
+
+:ref:`Collect <collect>` and :ref:`review <review>` more data in order to
+:ref:`re-train <train>` the model and increase :ref:`detection <inspect>`
+accuracy.
+
+Simply copying the updated sample.pth file to a workspace will activate
+additional detection.
