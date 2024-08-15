@@ -33,7 +33,7 @@ class AudioClassifier:
         # Tuning options
         self.batch_size = 1
         self.momentum = apr.config.get('momentum')
-        self.learning_rate = apr.config.get('learning_rate')
+        self.learn_rate = apr.config.get('learning_rate')
         self.target_accuracy = apr.config.get('target_accuracy')
 
         # Models (search labels)
@@ -52,7 +52,7 @@ class AudioClassifier:
         # Training state
         self.optimizer = torch.optim.SGD(
                 self.network.parameters(),
-                lr=self.learning_rate,
+                lr=self.learn_rate,
                 momentum=self.momentum)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(
                 self.optimizer, milestones=[10, 30], gamma=0.1)
@@ -115,6 +115,7 @@ class AudioClassifier:
         '''
         Continue testing new models until target_accuracy is met
         '''
+        logging.debug(f'V: rate={self.sample_rate}  momentum={self.momentum}')
         # Track best iteration
         best_i = 0
         # Use defaults if no model was loaded
@@ -159,8 +160,22 @@ class AudioClassifier:
                 last_accuracy = [sum(accuracy.values()), 0]
             else:
                 last_accuracy[1] += 1
-                if last_accuracy[1] >= 10:
-                    logging.warning('New accuracy unchanged for 10 iterations')
+
+                # Attempt to get different results with modified learning rate
+                if last_accuracy[1] in [5, 10, 15]:
+                    logging.warning(
+                            'No accuracy change for 5 rounds; adding entropy')
+                    # Randomly adjust learning rate
+                    self.learn_rate *= (1 + (torch.rand(1).item() - 0.5) * 0.1)
+                    # Update optimizer with the new learning rate
+                    for param_group in self.optimizer.param_groups:
+                        param_group['lr'] = self.learn_rate
+
+                # Give up if entropy bump produced no changes
+                if last_accuracy[1] >= 20:
+                    logging.critical(
+                            'No accuracy change for 20 rounds; stopping')
+                    # Exit loop (starting fresh with the same model is best)
                     break
 
         logging.info(f'TRAINING COMPLETE :: Final Accuracy: {avg_best}')
@@ -216,7 +231,9 @@ class AudioClassifier:
         accuracy = {}
         for cls, correct_count in correct_pred.items():
             accuracy[cls] = 100 * float(correct_count) / total_pred[cls]
-            logging.debug(f'Accuracy for {cls:5s} is {accuracy[cls]:.1f}%')
+            logging.debug(
+                    f'Accuracy for {cls:5s} is {accuracy[cls]:.1f}% '
+                    f'({correct_count} of {total_pred[cls]})')
 
         return accuracy
 

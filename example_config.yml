@@ -16,8 +16,7 @@
 
 # List of bucket names for ML models
 # NOTE: At this time, only one model is supported
-# Example: [weirdnoise, poodle]
-#models: MUST_CONFIGURE
+#models: [badnoise]
 
 
 ##
