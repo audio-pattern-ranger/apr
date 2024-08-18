@@ -62,7 +62,7 @@ class FileSelection(tkinter.ttk.Frame):
         self.update_list()
 
         # Bind hotkeys
-        self.parent.bind('<Return>', self.open_path)
+        # self.parent.bind('<Return>', self.open_path)
 
         # Fill entire area
         self.grid_rowconfigure(1, weight=1)
@@ -106,7 +106,7 @@ class FileSelection(tkinter.ttk.Frame):
 
     def open_path(self, event=None):
         '''
-        Validate package selection and trigger reload
+        Validate selection and trigger reload
         '''
         # Create a temp directory for file review
         self.winfo_toplevel().tempdir = tempfile.TemporaryDirectory()
@@ -159,15 +159,16 @@ class FileList(tkinter.ttk.Frame):
 
         # Handle selection change
         self.files.bind('<<ListboxSelect>>', self.update_filename)
-        # self.files.bind('<Double-1>', self.open_path)  # bug
+        self.files.bind('<Double-1>', self.doubleclick)
 
-    def open_path(self, event):
+    def doubleclick(self, event):
         '''
         Trigger parent.open_path via toplevel
         '''
         if not hasattr(self.winfo_toplevel().mainframe.body, 'filename'):
             return None
-        self.winfo_toplevel().mainframe.open_path(event)
+        self.update_filename(event)
+        self.winfo_toplevel().mainframe.body.open_path(event)
 
     def update_filename(self, event):
         '''

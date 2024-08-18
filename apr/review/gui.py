@@ -38,7 +38,6 @@ class RootWindow(tkinter.Tk):
             self.style.theme_use('plastik')
         except tkinter.TclError:
             self.style.theme_use('alt')
-        self.load_styles()
 
         # Main menu
         self.menu = apr.review.menu.MainMenu(self)
@@ -75,26 +74,5 @@ class RootWindow(tkinter.Tk):
         # Toggle menu entries
         if framename == 'review':
             self.menu.file.entryconfig('Select File', state='normal')
-            # Hijack up button
-            self.bind('<Up>', self.mainframe.body.play_frame)
-            # TODO: Swap with <Enter>
         elif framename == 'filenav':
             self.menu.file.entryconfig('Select File', state='disabled')
-            # Release up button
-            self.unbind('<Up>')
-
-    def load_styles(self):
-        '''
-        Load a pre-defined set of styles.
-        '''
-        # Vertical Scrollbar / removes all three arrows
-        self.style.layout('arrowless.Vertical.Scrollbar', [
-            ('Vertical.Scrollbar.trough', {
-                'children': [('Vertical.Scrollbar.thumb', {})],
-                })])
-
-        # Horizontal Scrollbar / removes all three arrows
-        self.style.layout('arrowless.Horizontal.Scrollbar', [
-            ('Horizontal.Scrollbar.trough', {
-                'children': [('Horizontal.Scrollbar.thumb', {})],
-                })])
