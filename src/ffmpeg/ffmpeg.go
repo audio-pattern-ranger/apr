@@ -71,7 +71,7 @@ func PlayData(wavData []byte) {
 func Extract_Arguments(infile string, outdir string) []string {
 	return []string{
 		// basic-options input-mkv
-		"-y", "-loglevel", "fatal", "-nostdin", "-nostats", "-i", infile,
+		"-y", "-loglevel", "warning", "-nostdin", "-nostats", "-i", infile,
 		// wav-to-stdout
 		"-map", "0:a:0", "-f", "s16le", "-ar", "48000", "-ac", "1", "-",
 		// output-wav
@@ -102,7 +102,7 @@ func Recorder_Arguments() []string {
 	args := make([]string, 0, arg_count)
 
 	// basic-options  +5
-	args = append(args, "-y", "-loglevel", "fatal", "-nostdin", "-nostats")
+	args = append(args, "-y", "-loglevel", "warning", "-nostdin", "-nostats")
 
 	// audio-options  +2 +X
 	args = append(args, "-t", state.Runtime.Record_Duration)
