@@ -1,5 +1,5 @@
 ##
-# Dockerfile used to generate binaries from Julia Language source code.
+# Dockerfile for building dtrack binaries
 ##
 FROM docker.io/debian:13
 
@@ -11,12 +11,11 @@ RUN apt-get update && apt-get install -y \
 # Install build dependencies (go, gui)
 RUN apt-get install -y \
     make golang \
-    gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev
+    libgl1-mesa-dev xorg-dev libxkbcommon-dev
 
-# Cache golang dependencies
 # TODO: 'go get fyne' requires --tty, but not available in 'go build'
-#RUN echo "module temp" >go.mod && \
-#    go get fyne.io/fyne/v2 && \
+# Cache golang dependencies
+#RUN go get fyne.io/fyne/v2 && \
 #    go mod tidy && \
 #    rm -f go.mod go.sum
 

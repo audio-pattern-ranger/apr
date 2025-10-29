@@ -32,6 +32,7 @@ builder-%:
 BUILDER_CMD ?= /bin/bash
 builder-shell: builder
 	podman run --rm --tty \
+		-v "$(shell go env GOCACHE):/root/.cache/go-build" \
 		-v "$(PWD):/repo" \
 		dtrack_builder $(BUILDER_CMD)
 
