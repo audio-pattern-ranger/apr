@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Configuration Options - Disturbance Tracker</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../_theme/style/option_list.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Configuration Options";
+        var mkdocs_page_input_path = "setup/options.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Disturbance Tracker
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../..">About DTrack</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../hardware/">Hardware Selection</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../install/">Easy Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../configure/">Configuration File</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Configuration Options</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#workspace">Workspace</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#workspace-keep-temp">Workspace Keep Temp</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-audio-device">Record Audio Device</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-audio-options">Record Audio Options</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-video-device">Record Video Device</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-video-options">Record Video Options</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-video-timestamp">Record Video Timestamp</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-video-advanced">Record Video Advanced</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-inspect-models">Record Inspect Models</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-inspect-backlog">Record Inspect Backlog</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#record-duration">Record Duration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#train-target">Train Target</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#train-rate">Train Rate</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#train-momentum">Train Momentum</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#train-dropout">Train Dropout</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Usage</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../usage/overview/">General Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../usage/collect/">Collect Recordings</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../usage/review/">Review Clips</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../usage/train/">Train a Model</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../usage/inspect/">Inspect Results</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../usage/report/">Automatic Reports</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Disturbance Tracker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Introduction</li>
+      <li class="breadcrumb-item active">Configuration Options</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/MTecknology/dtrack/blob/master/docs/setup/options.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="configuration-options">Configuration Options</h1>
+<p>Visit the <a href="../configure/">Configuration File</a> section for information about
+how to use these configuration options.</p>
+<h2 id="workspace">Workspace</h2>
+<blockquote>
+<p>This is the location where DTrack stores data. This includes saved recordings,
+audio clips, trained models, temporary data, etc.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>"_workspace/"</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>string</td>
+<td>workspace</td>
+<td>DTRACK_WORKSPACE</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="workspace-keep-temp">Workspace Keep Temp</h2>
+<blockquote>
+<p>Keep temporary data after extracted for review.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>false</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>boolean</td>
+<td>keep_temp</td>
+<td>DTRACK_KEEP_TEMP</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-audio-device">Record Audio Device</h2>
+<blockquote>
+<p>The device identifier used to record audio.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>"plughw"</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>string</td>
+<td>audio_device</td>
+<td>RECORD_AUDIO_DEVICE</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>
+<p><strong>List audio devices:</strong> <code>ffmpeg -loglevel warning -sources alsa</code></p>
+<ul>
+<li>
+<p>Sample Output:</p>
+<pre><code>Auto-detected sources for alsa:
+null [Discard all samples (playback) or generate zero samples (capture)]
+hw:CARD=Snowflake,DEV=0 [Direct hardware device without any conversions]
+plughw:CARD=Snowflake,DEV=0 [Hardware device with all software conversions]
+default:CARD=Snowflake [Default Audio Device]
+sysdefault:CARD=Snowflake [Default Audio Device]
+front:CARD=Snowflake,DEV=0 [Front output / input]
+dsnoop:CARD=Snowflake,DEV=0 [Direct sample snooping device]
+</code></pre>
+</li>
+<li>
+<p>Look for devices with: "<u>software conversions</u>"</p>
+</li>
+<li>It is likely worth taking time to test available options.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<h2 id="record-audio-options">Record Audio Options</h2>
+<blockquote>
+<p>Additional ffmpeg options used for audio capture.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>[ "-f", "alsa" ]</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>list</td>
+<td>audio_options</td>
+<td>RECORD_AUDIO_OPTIONS</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-video-device">Record Video Device</h2>
+<blockquote>
+<p>The device identifier used to record video.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>"/dev/video0"</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>string</td>
+<td>video_device</td>
+<td>RECORD_VIDEO_DEVICE</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>
+<p><strong>List video devices:</strong> <code>ls -1 /dev/video*</code></p>
+<ul>
+<li>Sample Output:<pre><code>/dev/video0
+/dev/video1
+/dev/video2
+/dev/video3
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>List capabilities:</strong> <code>ffmpeg -hide_banner -f v4l2 -list_formats all -i &lt;DEVICE&gt;</code></p>
+<ul>
+<li>
+<p>Sample Output:</p>
+<pre><code>[v4l2 @ 0x5612] Compressed:       mjpeg: Motion-JPEG : 640x360 640x480 960x540 1024x576 1280x720 1920x1080 2560x1440 3840x2160
+[v4l2 @ 0x5612] Compressed:        h264:       H.264 : 640x360 640x480 960x540 1024x576 1280x720 1920x1080 2560x1440 3840x2160
+[v4l2 @ 0x5612] Compressed: Unsupported:        HEVC : 640x360 640x480 960x540 1024x576 1280x720 1920x1080 2560x1440 3840x2160
+[v4l2 @ 0x5612] Raw       :     yuyv422:  YUYV 4:2:2 : 640x360 640x480 960x540 1024x576 1280x720 1920x1080
+[in#0 @ 0x5612] Error opening input: Immediate exit requested
+Error opening input file /dev/video2.
+</code></pre>
+</li>
+<li>
+<p>This output shows a camera capable of recording 4K video.</p>
+</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<h2 id="record-video-options">Record Video Options</h2>
+<blockquote>
+<p>Additional ffmpeg options used for video capture.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>[ "-f", "v4l2", "-framerate", "15" ]</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>list</td>
+<td>video_options</td>
+<td>RECORD_VIDEO_OPTIONS</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-video-timestamp">Record Video Timestamp</h2>
+<blockquote>
+<p>Long string that defines the datestamp that is added on top of recorded video.</p>
+<p>The default value uses <code>Monospace Bold</code>, set to a bright <code>Red, 48-Point</code> font.
+This font is provided by the <code>fonts-freefont-ttf</code> package,</p>
+<p>This filter is applied to every frame, so it is possible to add <code>hflip,vflip,</code>
+to the start of the string, which will result in an image that is flipped both
+horizontally and vertically--perfect for an upside-down camera.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text=%{localtime}:fontcolor=red@0.9:x=7:y=7:fontsize=48"</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>string</td>
+<td>video_timestamp</td>
+<td>RECORD_VIDEO_TIMESTAMP</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-video-advanced">Record Video Advanced</h2>
+<blockquote>
+<p>Video creation arguments that ultimately control the final recorded video quality.</p>
+<p>A sensible range for 1080p video is between <code>3M</code> and <code>8M</code>, with <code>3.5M</code> being the
+observed upper limit on a Raspberry Pi 5--due to lack of hardware <strong>en</strong>coder.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>[ "libx264", "-crf", "23", "-preset", "fast", "-tune", "zerolatency", "-maxrate", "3M", "-bufsize", "24M" ]</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>list</td>
+<td>video_advanced</td>
+<td>RECORD_VIDEO_ADVANCED</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-inspect-models">Record Inspect Models</h2>
+<blockquote>
+<p>List of tags used for training, and trained models used for automatic detection.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>[ ]</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>list</td>
+<td>inspect_models</td>
+<td>RECORD_INSPECT_MODELS</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-inspect-backlog">Record Inspect Backlog</h2>
+<blockquote>
+<p>Defines the maximum number of "segments" that can back up in each queue
+before newly recorded audio is discarded from queue.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>5</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>number</td>
+<td>inspect_backlog</td>
+<td>RECORD_INSPECT_BACKLOG</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="record-duration">Record Duration</h2>
+<blockquote>
+<p>Length of time to use for each recording.</p>
+<ul>
+<li>Very short recordings will suffer inadequate compression and are harder to review.</li>
+<li>Very long recordings will be much larger and more difficult to submit.</li>
+</ul>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>"00:10:00"</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>string</td>
+<td>record_duration</td>
+<td>RECORD_DURATION</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="train-target">Train Target</h2>
+<blockquote>
+<p>Success rate of model (as percent correct) required before training is
+considered a success.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>0.95</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>number</td>
+<td>train_target</td>
+<td>TRAIN_TARGET</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="train-rate">Train Rate</h2>
+<blockquote>
+<p>One of the "big three" macro adjustments in machine learning.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>0.001</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>number</td>
+<td>train_rate</td>
+<td>TRAIN_RATE</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="train-momentum">Train Momentum</h2>
+<blockquote>
+<p>One of the "big three" macro adjustments in machine learning.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>0.9</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>number</td>
+<td>train_momentum</td>
+<td>TRAIN_MOMENTUM</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<h2 id="train-dropout">Train Dropout</h2>
+<blockquote>
+<p>One of the "big three" macro adjustments in machine learning.</p>
+<div class="admonition option">
+<p class="admonition-title">Default Value: <code>0.2</code></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Configuration Variable</th>
+<th>Environment Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>number</td>
+<td>train_dropout</td>
+<td>TRAIN_DROPOUT</td>
+</tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../configure/" class="btn btn-neutral float-left" title="Configuration File"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../usage/overview/" class="btn btn-neutral float-right" title="General Overview">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>&copy; 2024-2025 Michael Lustfield (MTecknology)</p>
+  </div>
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/MTecknology/dtrack" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../configure/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../usage/overview/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

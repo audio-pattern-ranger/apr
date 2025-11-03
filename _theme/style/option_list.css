@@ -1,0 +1,10 @@
+.option .admonition-title {
+  background-color: #2685c4 !important;
+}
+
+.option .admonition-title code {
+  box-decoration-break: clone;
+  font-weight: normal;
+  line-height: 22px;
+  background: rgba(255, 255, 255, 0.85) !important;
+}

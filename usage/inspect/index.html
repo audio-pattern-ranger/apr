@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Inspect Results - Disturbance Tracker</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../_theme/style/option_list.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Inspect Results";
+        var mkdocs_page_input_path = "usage/inspect.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Disturbance Tracker
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../..">About DTrack</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../setup/hardware/">Hardware Selection</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Easy Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../setup/configure/">Configuration File</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../setup/options/">Configuration Options</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Usage</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">General Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../collect/">Collect Recordings</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../review/">Review Clips</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../train/">Train a Model</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Inspect Results</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../report/">Automatic Reports</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Disturbance Tracker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Usage</li>
+      <li class="breadcrumb-item active">Inspect Results</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/MTecknology/dtrack/blob/master/docs/usage/inspect.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="manual-inspection">Manual Inspection</h1>
+<p>After <code>model.{pth,wav}</code> are generated, the <code>inspect</code> action can be used to
+manually review individual video (<code>.mkv</code>) files.</p>
+<pre><code class="language-sh">       python3 -m train.check -M $model_name -i $path_to_mkv
+</code></pre>
+<p>This returns a list of frames where the trained noise was detected.</p>
+<p><img alt="Inspect run on a single file" src="../../_images/inspect_single.webp" /></p>
+<p>These frames can then be reviewed/tagged using <a href="../review/">the review utility</a>
+and then used <a href="../train/">train</a> an improved model.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../train/" class="btn btn-neutral float-left" title="Train a Model"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../report/" class="btn btn-neutral float-right" title="Automatic Reports">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>&copy; 2024-2025 Michael Lustfield (MTecknology)</p>
+  </div>
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/MTecknology/dtrack" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../train/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../report/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
