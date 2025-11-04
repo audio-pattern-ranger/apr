@@ -8,31 +8,22 @@ import logging
 
 # NOTE: Partially replicates "Application_Configuration" from src/config.go
 DTRACK_DEFAULTS = {
+        "workspace": "_workspace",
+        "inspect_models": [],
         "train_target": 0.95,
         "train_rate": 0.001,
         "train_momentum": 0.9,
         "train_dropout": 0.2,
         }
 
-# Currently loaded configuration options
-_loaded_configuration = {}
-
-
-def get(key):
-    '''
-    Return the value for a named key
-    '''
-    if not _loaded_configuration:
-        bootstrap()
-    return _loaded_configuration[key]
-
 
 def bootstrap():
     '''
-    Bootstrap process that loads command line arguments and configuration options
+    Read cli flags into environment and return configuration options
     '''
     opts = read_arguments()
-    load_configuration(opts.config_path)
+
+    # Convert golang log level to python (-V, -v, )
     if opts.very_verbose:
         level = 'TRACE'
     elif opts.verbose:
@@ -41,26 +32,48 @@ def bootstrap():
         level = 'INFO'
     configure_logging(level)
 
-
-def load_configuration(path):
-    '''
-    Load configuration file and merge with defaults
-    '''
-    global _loaded_configuration
-    with open(path) as fh:
+    # Load configuration file and merge with defaults + flags
+    with open(opts.config_path, 'r', encoding='utf-8') as fh:
         config = json.load(fh)
-    _loaded_configuration = {**config, **DTRACK_DEFAULTS}
+    return {**DTRACK_DEFAULTS, **config, **vars(opts)}
 
 
 def configure_logging(log_level):
     '''
     Configure log format and output log level
     '''
+    # Log Level: Trace
+    logging.addLevelName(5, "TRACE")
+    logging.Logger.trace = log_trace_real
+    logging.trace = log_trace
+
     log = logging.getLogger()
     log.setLevel(log_level)
-    log_format = logging.Formatter('%(levelname)s:%(message)s')
+
+    # If no handlers, add a default StreamHandler
+    if not log.hasHandlers():
+        handler = logging.StreamHandler()
+        log.addHandler(handler)
+
+    # Log Format
+    log_format = logging.Formatter('%(levelname)5s: %(message)s')
     for h in log.handlers:
         h.setFormatter(log_format)
+
+
+def log_trace(message, *args, **kwargs):
+    '''
+    Wrapper to support access via .trace()
+    '''
+    logging.log(5, message, *args, **kwargs)
+
+
+def log_trace_real(self, message, *args, **kwargs):
+    '''
+    Log a message if level is set to TRACE
+    '''
+    if self.isEnabledFor(5):
+        self._log(5, message, args, **kwargs)  # pylint: disable=W0212
 
 
 def read_arguments():
@@ -78,7 +91,7 @@ def read_arguments():
         dest='config_path',
         action='store',
         metavar='<config>',
-        default="./config.json",
+        default='./config.json',
         help='Specify path of the configuration file')
     parser.add_argument(
         '-k',
@@ -100,7 +113,7 @@ def read_arguments():
     group_inspect = parser.add_argument_group('options for action [inspect]')
     group_inspect.add_argument(
         '-i',
-        dest='mkv_path',
+        dest='inspect_path',
         metavar='<input>',
         help='Path to DTrack-Formatted MKV file (or directory of files)')
 

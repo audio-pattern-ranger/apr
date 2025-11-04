@@ -2,6 +2,7 @@
 dtrack
 dtrack-headless
 docsite/
+*.pkl
 
 # dtrack
 /config.json
