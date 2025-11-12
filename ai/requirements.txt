@@ -1,0 +1,7 @@
+audiomentations
+onnxruntime
+onnxscript
+scikit-learn
+scikit-image
+torch
+tqdm

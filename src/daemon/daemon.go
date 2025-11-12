@@ -6,9 +6,12 @@
 package daemon
 
 import (
+	"gorgonia.org/tensor"
+
 	// DTrack
 	"dtrack/ffmpeg"
 	"dtrack/log"
+	"dtrack/model"
 	"dtrack/state"
 
 	// Standard
@@ -17,6 +20,12 @@ import (
 	"os/signal"
 	"time"
 )
+
+// Segment of WAV data
+type audio_segment struct {
+	count uint
+	data  []byte
+}
 
 // Primary post-bootstrap entry point
 // Initialize audio segment scanners and begin recording process
@@ -76,13 +85,13 @@ func Pipe2DevNull(r io.Reader) {
 // Initialize all audio segment scanners and process wav_stream data
 func start_scanners(wav_stream *io.PipeReader) {
 	// Process manager for segment scanners
-	scanners := make(map[string]chan audio_segment)
+	scanners := make(map[string]chan *tensor.Dense)
 	returned_segments := make(chan audio_segment)
 
 	// Start segment scanner thread for each trained model
 	for _, model_name := range state.Runtime.Record_Inspect_Models {
 		segment_channel := make(
-			chan audio_segment,
+			chan *tensor.Dense,
 			state.Runtime.Record_Inspect_Backlog)
 		scanners[model_name] = segment_channel
 		go scan_segments(model_name, segment_channel)
@@ -91,7 +100,10 @@ func start_scanners(wav_stream *io.PipeReader) {
 	// Stream converter
 	go stream_to_segment(wav_stream, returned_segments)
 
-	// Distribute new segments to all scanners
+	// Simple 2-count buffer
+	var last_segment audio_segment
+
+	// Handle new audio segments
 	for {
 		// Collect new segment
 		new_segment, ok := <-returned_segments
@@ -99,11 +111,27 @@ func start_scanners(wav_stream *io.PipeReader) {
 			log.Die("Stream converter disappeared")
 			return
 		}
-		// Distribute segment to scanners
+		// Save first segment seen, but delay processing until next segment
+		if last_segment.data == nil {
+			last_segment = new_segment
+			continue
+		}
+
+		// Combine two segments into a single prepared check window
+		check_window := append(last_segment.data, new_segment.data...)
+		preparedAudio, err := model.Prepare(check_window)
+		// Rotate last_segment before additional checks
+		last_segment = new_segment
+		if err != nil {
+			log.Warn("ML Prepare failed: %v", err)
+			continue
+		}
+
+		// Distribute audio sample to scanners
 		for name, scanner := range scanners {
 			select {
 			// Send segment to individual scanner
-			case scanner <- new_segment:
+			case scanner <- preparedAudio:
 			default:
 				log.Warn("Scanner Blocked: %s", name)
 			}
@@ -139,5 +167,29 @@ func stream_to_segment(stream *io.PipeReader, segments chan<- audio_segment) {
 			data:  segment_data,
 		}
 		segment_id++
+	}
+}
+
+
+// Primary loop that tests each audio segment against a trained model
+// TODO: Type returned from model.Prepare()?
+func scan_segments(name string, audio_stream chan *tensor.Dense) {
+	ml := model.Load(state.Runtime.Workspace + "/models/" + name + ".onnx")
+	for {
+		// Wait for prepared audio data
+		audio, ok := <-audio_stream
+		if !ok {
+			log.Die("Scanner unexpectedly closed: %s", name)
+		}
+
+		// Inference on preparedData
+		confidence := model.Infer(ml, audio)
+
+		// Decision Logic
+		if confidence > state.Runtime.Record_Inspect_Trust {
+			log.Info("SCANNER %s: MATCH found with Confidence %.4f", name, confidence)
+		} else {
+			log.Trace("SCANNER %s: No match (Confidence %.4f)", name, confidence)
+		}
 	}
 }

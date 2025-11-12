@@ -150,7 +150,17 @@ Record Inspect Backlog
 > !!! option "Default Value: `5`"
 >     | Type    | Configuration Variable | Environment Variable      |
 >     | ------- | ---------------------- | ------------------------- |
->     | number  | inspect\_backlog       | RECORD\_INSPECT\_BACKLOG  |
+>     | integer | inspect\_backlog       | RECORD\_INSPECT\_BACKLOG  |
+
+Record Inspect Trust
+----------------------
+
+> Confidence level required to assume a match was found.
+>
+> !!! option "Default Value: `0.50`"
+>     | Type    | Configuration Variable | Environment Variable      |
+>     | ------- | ---------------------- | ------------------------- |
+>     | decimal | inspect\_trust         | RECORD\_INSPECT\_TRUST    |
 
 Record Duration
 ---------------
@@ -165,43 +175,43 @@ Record Duration
 >     | ------- | ---------------------- | ------------------------- |
 >     | string  | record\_duration       | RECORD\_DURATION          |
 
-Train Target
-------------
+Train Batch Size
+----------------
 
-> Success rate of model (as percent correct) required before training is
-> considered a success.
+> Number of samples to use in each round of training.
 >
-> !!! option "Default Value: `0.95`"
+> !!! option "Default Value: `16`"
 >     | Type    | Configuration Variable | Environment Variable      |
 >     | ------- | ---------------------- | ------------------------- |
->     | number  | train\_target          | TRAIN\_TARGET             |
+>     | integer | train\_batch\_size     | TRAIN\_BATCH\_SIZE        |
+
+Train Epochs
+------------
+
+> Maximum number of learning attempts before stopping.
+>
+> !!! option "Default Value: `200`"
+>     | Type    | Configuration Variable | Environment Variable      |
+>     | ------- | ---------------------- | ------------------------- |
+>     | integer | train\_epochs          | TRAIN\_EPOCHS             |
+
+Train Patience
+--------------
+
+> Maximum number of attempts to build a better model before stopping early.
+>
+> !!! option "Default Value: `10`"
+>     | Type    | Configuration Variable | Environment Variable      |
+>     | ------- | ---------------------- | ------------------------- |
+>     | integer | train\_patience        | TRAIN\_PATIENCE           |
 
 Train Rate
 ----------
 
-> One of the "big three" macro adjustments in machine learning.
+> Step size used to adjust learning. This may be decreased during training
+> to prevent over-fitting data samples.
 >
-> !!! option "Default Value: `0.001`"
+> !!! option "Default Value: `0.0001`"
 >     | Type    | Configuration Variable | Environment Variable      |
 >     | ------- | ---------------------- | ------------------------- |
->     | number  | train\_rate            | TRAIN\_RATE               |
-
-Train Momentum
---------------
-
-> One of the "big three" macro adjustments in machine learning.
->
-> !!! option "Default Value: `0.9`"
->     | Type    | Configuration Variable | Environment Variable      |
->     | ------- | ---------------------- | ------------------------- |
->     | number  | train\_momentum        | TRAIN\_MOMENTUM           |
-
-Train Dropout
--------------
-
-> One of the "big three" macro adjustments in machine learning.
->
-> !!! option "Default Value: `0.2`"
->     | Type    | Configuration Variable | Environment Variable      |
->     | ------- | ---------------------- | ------------------------- |
->     | number  | train\_dropout         | TRAIN\_DROPOUT            |
+>     | decimal | train\_rate            | TRAIN\_RATE               |
