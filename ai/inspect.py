@@ -1,105 +1,105 @@
 '''
 Disturbance Tracker - Inspection Utility
-
-This script performs inference on audio files using a trained PyTorch model.
-It can process a single file or a directory of files.
 '''
 import logging
 import pathlib
+import pprint
 import sys
-import torch
 import json
+import torch
 
-# DTrack
+# DTrack project imports
 import ai.options
 import ai.model
 
-def main():
-    """
-    Entry point for the inspection script.
-    """
+
+def check_input():
+    '''
+    Main entry point for the inspection script.
+
+    Identify input and return inference results.
+    '''
     options = ai.options.bootstrap()
     workspace = pathlib.Path(options['workspace'])
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"Using device: {device}")
 
-    # Load configured models
-    models = {}
-    for model_name in options['inspect_models']:
-        model_path = workspace / f'{model_name}.pth'
-        loaded_model = ai.model.load_model(model_path, device)
-        if loaded_model:
-            models[model_name] = loaded_model
+    # Load all models specified in the configuration.
+    if not options['inspect_models']:
+        raise ValueError('No inspection models are configured.')
+    models = {
+            model: ai.model.load(workspace / 'models' / f'{model}.pth')
+            for model in options['inspect_models']}
 
-    if not models:
-        logging.critical("No models could be loaded. Exiting.")
-        return
-
-    # Identify and process input source
-    if not options['inspect_path']:
-        logging.error("No input path specified. Please use the -i flag.")
-        return
-
-    inspect_path = pathlib.Path(options['inspect_path'])
-    if inspect_path.is_file():
-        logging.trace(f'Running inference on single file: {inspect_path}')
-        results = infer(models, inspect_path, device)
-        print(json.dumps(results, indent=2))
-
-    elif inspect_path.is_dir():
-        logging.trace(f'Running inference on directory: {inspect_path}')
-        all_results = {}
-        for filename in sorted(inspect_path.glob('*.dat')):
-            logging.info('Inspecting %s', filename.name)
-            all_results[filename.name] = infer(models, filename, device)
-        print(json.dumps(all_results, indent=2))
+    # Execution Routing
+    if not options.get('inspect_path'):
+        logging.debug('Running inference with standard input')
+        audio = sys.stdin.buffer.read()
+        if not audio:
+            raise ValueError('No standard input!')
+        pprint.pprint(infer_all(models, audio))
     else:
-        raise OSError(f'Input path not found: {inspect_path}')
+        inspect_path = pathlib.Path(options['inspect_path'])
+        if inspect_path.is_file():
+            logging.debug('Running inference with single file')
+            for audio in slice_audio(inspect_path):
+                pprint.pprint(infer_all(models, audio))
+
+        elif inspect_path.is_dir():
+            logging.debug('Running inference with directory of mkv files')
+            for filename in inspect_path.glob('*.*'):
+                logging.info('Reviewing %s', filename)
+                for audio in slice_audio(filename):
+                    pprint.pprint(infer_all(models, audio))
+
+        else:
+            raise OSError(f'Could not find {inspect_path}')
 
 
-def infer(models, file_path, device):
-    """
-    Runs inference on a single audio file using all loaded models.
+def slice_audio(path):
+    '''
+    Return a list of numpy-prepared 2-second segments from audio file
+    '''
+    # Test against tagged pcm data files
+    if path.match('*.dat'):
+        return [ai.model.open_audio_file(path)]
 
-    Args:
-        models (dict): A dictionary of loaded model instances.
-        file_path (pathlib.Path): The path to the .dat audio file.
-        device (torch.device): The device to run inference on.
+    # TODO: ffmpeg | stdin-to-second | overlapping-to-slices
+    if path.match('*.mkv'):
+        logging.critical('Not Implemented')
+        return []
 
-    Returns:
-        dict: A dictionary containing the prediction results from each model.
-    """
-    try:
-        # Preprocess the audio file once
-        audio_data = ai.model.open_audio_file(file_path)
-        spectrogram = ai.model.audio_to_spectrogram(audio_data)
-        # Add a batch dimension and send to device
-        input_tensor = spectrogram.unsqueeze(0).to(device)
+    logging.warning('Skipping %s (wrong file type)', path)
+    return []
 
-    except Exception as e:
-        logging.error(f"Could not process file {file_path}: {e}")
-        return {"error": "File processing failed"}
 
+def infer_all(models, audio_data):
+    '''
+    Run inference on single audio segment using all trained models
+    '''
+    # Convert raw pcm bytes to numpy array
+    if isinstance(audio_data, bytes):
+        audio_data = ai.model.normalize_audio(audio_data)
+
+    # Convert the NumPy array into a spectrogram tensor.
+    spectrogram = ai.model.audio_to_spectrogram(audio_data)
+
+    # Add a batch dimension (B, C, H, W) for the model
+    input_tensor = spectrogram.unsqueeze(0).to(ai.model.CUDA_CPU)
+
+    # Inference Step
     results = {}
-    with torch.no_grad():
+    with torch.no_grad():  # Disable gradient calculation for efficiency
         for model_name, model in models.items():
-            # Get raw model output (logits)
             output = model(input_tensor)
-            # Apply sigmoid to get probability
             probability = torch.sigmoid(output).item()
-
             is_match = probability > 0.5
             confidence = probability if is_match else 1 - probability
 
             results[model_name] = {
                 'is_match': bool(is_match),
                 'confidence': float(confidence),
-                'probabilities': {
-                    'miss': float(1 - probability),
-                    'hit': float(probability)
                 }
-            }
     return results
 
+
 if __name__ == '__main__':
-    main()
+    check_input()

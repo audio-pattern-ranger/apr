@@ -36,11 +36,12 @@ type Application_Configuration struct {
 	Record_Inspect_Models  []string `json:"inspect_models"`
 	Has_Models             bool
 	Record_Inspect_Backlog int      `json:"inspect_backlog"`
+	Record_Inspect_Trust   float64  `json:"inspect_trust"`
 	Record_Duration        string   `json:"record_duration"`
-	Train_Target           float64  `json:"train_target"`
+	Train_Batch_Size       int      `json:"train_batch_size"`
+	Train_Epochs           int      `json:"train_epochs"`
+	Train_Patience         int      `json:"train_patience"`
 	Train_Rate             float64  `json:"train_rate"`
-	Train_Momentum         float64  `json:"train_momentum"`
-	Train_Dropout          float64  `json:"train_dropout"`
 }
 
 // Map environment variables to Runtime
@@ -54,24 +55,25 @@ var Environment_Configation_Map = map[string]string{
 	"RECORD_VIDEO_ADVANCED":  "Record_Video_Advanced",
 	"RECORD_INSPECT_MODELS":  "Record_Inspect_Models",
 	"RECORD_INSPECT_BACKLOG": "Record_Inspect_Backlog",
+	"RECORD_INSPECT_TRUST":   "Record_Inspect_Trust",
 	"RECORD_DURATION":        "Record_Duration",
-	"TRAIN_TARGET":           "Train_Target",
+	"TRAIN_BATCH_SIZE":       "Train_Batch_Size",
+	"TRAIN_EPOCHS":           "Train_Epochs",
+	"TRAIN_PATIENCE":         "Train_Patience",
 	"TRAIN_RATE":             "Train_Rate",
-	"TRAIN_MOMENTUM":         "Train_Momentum",
-	"TRAIN_DROPOUT":          "Train_Dropout",
 }
 
 // Loads Runtime configuration data into current state
 func Load_Configuration(config_path string) {
 	// Default configuration values
 	cfg := Application_Configuration{
-		Workspace:            "_workspace",
-		Workspace_Keep_Temp:  false,
-		Record_Audio_Device:  "plughw",
-		Record_Audio_Options: []string{"-f", "alsa"},
-		Record_Video_Device:  "/dev/video0",
-		Record_Video_Options: []string{
-			"-f", "v4l2", "-framerate", "15"},
+		Workspace:              "_workspace",
+		Workspace_Keep_Temp:    false,
+		Record_Audio_Device:    "plughw",
+		Record_Audio_Options:   []string{"-f", "alsa"},
+		Record_Video_Device:    "/dev/video0",
+		Record_Video_Options:   []string{
+			"-f", "v4l2",   "-framerate", "15"},
 		Record_Video_Timestamp: "drawtext=fontfile=/usr/share/fonts/truetype/freefont/" +
 			"FreeMonoBold.ttf:text=%{localtime}:fontcolor=red@0.9:x=7:y=7:fontsize=48",
 		Record_Video_Advanced: []string{
@@ -80,10 +82,11 @@ func Load_Configuration(config_path string) {
 		Record_Duration:        "00:10:00",
 		Record_Inspect_Models:  []string{},
 		Record_Inspect_Backlog: 5,
-		Train_Target:           0.95,
-		Train_Rate:             0.001,
-		Train_Momentum:         0.9,
-		Train_Dropout:          0.2,
+		Record_Inspect_Trust:   0.50,
+		Train_Batch_Size:       16,
+		Train_Epochs:           200,
+		Train_Patience:         10,
+		Train_Rate:             0.0001,
 	}
 
 	// Check for configuration file
