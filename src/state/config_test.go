@@ -18,10 +18,7 @@ func TestLoad_Configuration_WithTempFile(t *testing.T) {
 		"inspect_backlog": 3,
 		"inspect_segment": 10,
 		"record_duration": "00:05:00",
-		"train_target": 0.85,
-		"train_rate": 0.005,
-		"train_momentum": 0.8,
-		"train_dropout": 0.3
+		"train_rate": 0.005
 	}`
 
 	// Create a temporary file
@@ -54,7 +51,7 @@ func TestLoad_Configuration_WithTempFile(t *testing.T) {
 	if len(cfg.Record_Inspect_Models) != 2 {
 		t.Errorf("Expected 2 inspect models, got %d", len(cfg.Record_Inspect_Models))
 	}
-	if cfg.Train_Target != 0.85 {
-		t.Errorf("Expected Train_Target 0.85, got %f", cfg.Train_Target)
+	if cfg.Train_Rate != 0.005 {
+		t.Errorf("Expected Train_Rate 0.005, got %f", cfg.Train_Rate)
 	}
 }
