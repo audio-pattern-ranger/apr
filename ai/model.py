@@ -132,8 +132,8 @@ def convert(pth, onnx):
     model = load(pth)
     torch.onnx.export(
         model, torch.randn(1, 3, 128, 188).to(ai.model.CUDA_CPU), onnx,
-        input_names=['input'], output_names=['output'], opset_version=11,
-        verbose=False)
+        input_names=['input'], output_names=['output'], opset_version=20,
+        dynamo=False, verbose=False)
 
 
 def open_audio_file(filepath):
