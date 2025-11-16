@@ -73,7 +73,8 @@ func Load_Configuration(config_path string) {
 		Record_Audio_Options:   []string{"-f", "alsa"},
 		Record_Video_Device:    "/dev/video0",
 		Record_Video_Options:   []string{
-			"-f", "v4l2",   "-framerate", "15"},
+			"-f", "v4l2", "-input_format", "h264",
+			"-video_size", "1920x1080", "-framerate", "20"},
 		Record_Video_Timestamp: "drawtext=fontfile=/usr/share/fonts/truetype/freefont/" +
 			"FreeMonoBold.ttf:text=%{localtime}:fontcolor=red@0.9:x=7:y=7:fontsize=48",
 		Record_Video_Advanced: []string{

@@ -2,10 +2,12 @@ Hardware Selection
 ==================
 
 The financial investment required for this project comes down to hardware
-selection. The hardware required:
+selection.
+
+The hardware required:
 
 - Training Device: Typically the same laptop being used to set things up
-- Monitoring Device: Low-power mini-PC with a few USB ports
+- Monitoring Device: Low-power mini-PC with at least two (2) USB ports:
     * Microphone: The sensor that detects disturbing audio
     * Camera: The sensor that shows proof of audio source
 

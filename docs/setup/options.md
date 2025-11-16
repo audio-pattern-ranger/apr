@@ -96,7 +96,12 @@ Record Video Options
 
 > Additional ffmpeg options used for video capture.
 >
-> !!! option "Default Value: `[ "-f", "v4l2", "-framerate", "15" ]`"
+> List video devices using: `ls /dev/video*`
+>
+> List video device capabilities using: `v4l2-ctl -d $DEVICE --list-formats-ext`;
+> look for `'H264' (H.264, compressed)`.
+>
+> !!! option "Default Value: `[ "-f", "v4l2", "-input_format", "h264", "-video_size", "1920x1080", "-framerate", "20" ]`"
 >     | Type    | Configuration Variable | Environment Variable      |
 >     | ------- | ---------------------- | ------------------------- |
 >     | list    | video\_options         | RECORD\_VIDEO\_OPTIONS    |

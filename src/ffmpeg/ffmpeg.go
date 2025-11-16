@@ -91,7 +91,9 @@ func Extract_Arguments(infile string, outdir string) []string {
 //	  [output-wav&vid] [to-mkv] [MISSING:filename]
 func Recorder_Arguments() []string {
 	// basic-options
-	args := []string{"-y", "-loglevel", "warning", "-nostdin", "-nostats"}
+	args := []string{
+		"-y", "-loglevel", "warning", "-nostdin", "-nostats",
+		"-guess_layout_max", "1"}
 
 	// audio-options
 	args = append(args, "-t", state.Runtime.Record_Duration)
