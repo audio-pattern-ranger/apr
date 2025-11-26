@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	// 3rd-Party
+	// 3rd-Party (OLD LIBRARY)
 	"github.com/mjibson/go-dsp/fft"
 	"github.com/mjibson/go-dsp/window"
 	"github.com/owulveryck/onnx-go"
@@ -35,18 +35,23 @@ type OnnxModel struct {
 	Labels   []string
 }
 
+// Not supported by golang
 func Train() {
 	log.Info("Model Training is handled by python -m ai.train")
 }
 
+// Load initializes the model bytes and loads the labels.json file.
 func Load(model_path string) OnnxModel {
 	log.Debug("Loading model from %s", model_path)
 
+	// 1. Read .onnx file
 	bytes, err := os.ReadFile(model_path)
 	if err != nil {
 		log.Die("could not read ONNX file: %s", err)
 	}
 
+	// 2. Read _labels.json file
+	// e.g. whistle.onnx -> whistle_labels.json
 	ext := filepath.Ext(model_path)
 	jsonPath := strings.TrimSuffix(model_path, ext) + "_labels.json"
 
@@ -62,20 +67,26 @@ func Load(model_path string) OnnxModel {
 
 	log.Info("Model loaded with classes: %v", labels)
 
-	return OnnxModel{RawBytes: bytes, Labels: labels}
+	return OnnxModel{
+		RawBytes: bytes,
+		Labels:   labels,
+	}
 }
 
+// Prepare takes raw audio bytes and converts them to a ready-to-infer tensor (DSP logic).
 func Prepare(pcmData []byte) (*tensor.Dense, error) {
-	// 1. Pad/Truncate
+	// 1. Pad/Truncate the data to ensure fixed length (AUDIO_LENGTH_BYTES)
 	if len(pcmData) < AUDIO_LENGTH_BYTES {
+		log.Warn("Audio Underflow; Segment was not large enough!")
 		padding := make([]byte, AUDIO_LENGTH_BYTES-len(pcmData))
 		pcmData = append(pcmData, padding...)
 	}
 	if len(pcmData) > AUDIO_LENGTH_BYTES {
+		log.Warn("Audio Overflow; Segment was too large!")
 		pcmData = pcmData[:AUDIO_LENGTH_BYTES]
 	}
 
-	// 2. Normalize
+	// 2. Normalize to float64 for DSP
 	audioFloat32 := normalizeAudio(pcmData)
 	audioFloat64 := make([]float64, len(audioFloat32))
 	for i, v := range audioFloat32 {
@@ -84,13 +95,17 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 
 	// 3. STFT Calculation
 	n_frames_calculated := (len(audioFloat64)-N_FFT)/HOP_LENGTH + 1
+
+	// Check for extreme case where calculated frames exceed expected
 	if n_frames_calculated > SPECTROGRAM_FRAMES {
+		log.Warn("ML: Calculated frames exceed expected. Using calculated size.")
 		n_frames_calculated = SPECTROGRAM_FRAMES
 	}
 
-	// Calculate bins - USING FULL SPECTRUM (Matches skimage resize behavior)
+	// Calculate bins to keep based on Full Spectrum (Matches Python)
 	bins_to_keep := N_FFT/2 + 1 // 1025 bins
 
+	// Create Spectrogram Matrix
 	spectrogram := make([][]float64, bins_to_keep)
 	for i := range spectrogram {
 		spectrogram[i] = make([]float64, SPECTROGRAM_FRAMES)
@@ -131,7 +146,7 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 		copy(power_spec_1D[i*SPECTROGRAM_FRAMES:(i+1)*SPECTROGRAM_FRAMES], spectrogram[i])
 	}
 
-	// Resize using Average Pooling (Matches skimage better for full spectrum)
+	// Resize using Average Pooling
 	rescaled_spec := resizeRowsAvg(power_spec_1D, bins_to_keep, SPECTROGRAM_FRAMES, N_MELS)
 
 	// 5. Power to DB & Normalize
@@ -156,26 +171,33 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 	return inputTensor, nil
 }
 
+// Infer runs the model and returns a MAP of probabilities (Multi-Class).
+// Returns: map["barking"] = 0.8, map["empty"] = 0.2
 func Infer(inferModel OnnxModel, preparedAudio *tensor.Dense) map[string]float64 {
+	// 1. Create Backend
 	backend := gorgonnx.NewGraph()
 	onnxModel := onnx.NewModel(backend)
 
+	// 2. Unmarshal
 	if err := onnxModel.UnmarshalBinary(inferModel.RawBytes); err != nil {
 		log.Die("could not unmarshal ONNX model: %s", err)
 	}
 
+	// 3. Run
 	onnxModel.SetInput(0, tensor.Tensor(preparedAudio))
 	if err := backend.Run(); err != nil {
 		log.Die("Inference failed: %v", err)
 	}
 
+	// 4. Get Output
 	outputTensors, _ := onnxModel.GetOutputTensors()
 	outputDense, ok := outputTensors[0].(*tensor.Dense)
 	if !ok {
 		log.Die("Output tensor is not a *tensor.Dense type.")
 	}
 
-	floatSlice := outputDense.Data().([]float32)
+	// 5. Convert Logits to Probabilities (Softmax)
+	floatSlice := outputDense.Data().([]float32) // Gorgonia usually returns float32
 	logits := make([]float64, len(floatSlice))
 	for i, v := range floatSlice {
 		logits[i] = float64(v)
@@ -183,6 +205,7 @@ func Infer(inferModel OnnxModel, preparedAudio *tensor.Dense) map[string]float64
 
 	probs := softmax(logits)
 
+	// 6. Map to Labels
 	results := make(map[string]float64)
 	for i, label := range inferModel.Labels {
 		if i < len(probs) {
@@ -194,6 +217,25 @@ func Infer(inferModel OnnxModel, preparedAudio *tensor.Dense) map[string]float64
 }
 
 // --- Helper Functions ---
+
+func softmax(logits []float64) []float64 {
+	max := -math.MaxFloat64
+	for _, v := range logits {
+		if v > max {
+			max = v
+		}
+	}
+	sum := 0.0
+	exps := make([]float64, len(logits))
+	for i, v := range logits {
+		exps[i] = math.Exp(v - max)
+		sum += exps[i]
+	}
+	for i := range exps {
+		exps[i] /= sum
+	}
+	return exps
+}
 
 func normalizeAudio(pcmData []byte) []float32 {
 	numSamples := len(pcmData) / 2
@@ -216,7 +258,6 @@ func powerToDb(spec []float64) []float64 {
 	if maxPower < 1e-10 {
 		maxPower = 1.0
 	}
-
 	for i, v := range spec {
 		dbSpec[i] = 10.0 * math.Log10(math.Max(v/maxPower, 1e-10))
 	}
@@ -234,11 +275,11 @@ func minMaxNormalize(dbSpec []float64) []float32 {
 			maxVal = v
 		}
 	}
+
 	rangeVal := maxVal - minVal
 	if rangeVal < 1e-6 {
 		rangeVal = 1e-6
 	}
-
 	img := make([]float32, len(dbSpec))
 	for i, v := range dbSpec {
 		img[i] = float32((v - minVal) / rangeVal)
@@ -246,7 +287,7 @@ func minMaxNormalize(dbSpec []float64) []float32 {
 	return img
 }
 
-// resizeRowsAvg: Average Pooling (using Full Spectrum)
+// resizeRowsAvg: Reverted to Average Pooling
 func resizeRowsAvg(input []float64, originalRows, cols, targetRows int) []float64 {
 	if originalRows == targetRows {
 		return input
@@ -274,23 +315,4 @@ func resizeRowsAvg(input []float64, originalRows, cols, targetRows int) []float6
 		}
 	}
 	return output
-}
-
-func softmax(logits []float64) []float64 {
-	max := -math.MaxFloat64
-	for _, v := range logits {
-		if v > max {
-			max = v
-		}
-	}
-	sum := 0.0
-	exps := make([]float64, len(logits))
-	for i, v := range logits {
-		exps[i] = math.Exp(v - max)
-		sum += exps[i]
-	}
-	for i := range exps {
-		exps[i] /= sum
-	}
-	return exps
 }

@@ -1,8 +1,3 @@
-// ##
-// DTrack Package: Surveilance Monitor
-//
-// Collects audio+video files and logs any matched audio disturbances.
-// ##
 package daemon
 
 import (
@@ -171,11 +166,12 @@ func stream_to_segment(stream *io.PipeReader, segments chan<- audio_segment) {
 	}
 }
 
-
 // Primary loop that tests each audio segment against a trained model
-// TODO: Type returned from model.Prepare()?
+// Updated to handle Multi-Class Map Output
 func scan_segments(name string, audio_stream chan *tensor.Dense) {
+	// Load the model (and implicit json labels)
 	ml := model.Load(state.Runtime.Workspace + "/models/" + name + ".onnx")
+
 	for {
 		// Wait for prepared audio data
 		audio, ok := <-audio_stream
@@ -183,14 +179,27 @@ func scan_segments(name string, audio_stream chan *tensor.Dense) {
 			log.Die("Scanner unexpectedly closed: %s", name)
 		}
 
-		// Inference on preparedData
-		confidence := model.Infer(ml, audio)
+		// Inference on preparedData (Returns map[string]float64)
+		predictions := model.Infer(ml, audio)
+
+		// Find the best match
+		bestClass := ""
+		bestConf := 0.0
+
+		for label, score := range predictions {
+			if score > bestConf {
+				bestConf = score
+				bestClass = label
+			}
+		}
 
 		// Decision Logic
-		if confidence > state.Runtime.Record_Inspect_Trust {
-			log.Info("SCANNER %s: MATCH found with Confidence %.4f", name, confidence)
+		// 1. Ignore "empty" class
+		// 2. Check if confidence is above Trust threshold
+		if bestClass != "empty" && bestConf > state.Runtime.Record_Inspect_Trust {
+			log.Info("SCANNER %s: MATCH found! Class: %s (Conf: %.4f)", name, bestClass, bestConf)
 		} else {
-			log.Trace("SCANNER %s: No match (Confidence %.4f)", name, confidence)
+			log.Trace("SCANNER %s: No match. Top: %s (Conf: %.4f)", name, bestClass, bestConf)
 		}
 	}
 }
