@@ -13,16 +13,14 @@ import (
 
 // Helper function to create a dummy raw audio buffer for dimensions testing
 func createTestAudioBuffer(fillData bool) []byte {
-	buffer := make([]byte, model.AUDIO_LENGTH_BYTES)
+	buffer := make([]byte, model.SampleSize)
 	if fillData {
-		for i := 0; i < model.AUDIO_LENGTH_BYTES; i++ {
+		for i := 0; i < model.SampleSize; i++ {
 			buffer[i] = byte(i % 256)
 		}
 	}
 	return buffer
 }
-
-// --- UNIT TESTS ---
 
 // TestPrepare_Dimensions: Ensures DSP output has the correct shape [1, 3, 128, 188].
 func TestPrepare_Dimensions(t *testing.T) {
@@ -36,7 +34,7 @@ func TestPrepare_Dimensions(t *testing.T) {
 	}
 
 	// Assert: Check the final expected shape
-	expectedShape := []int{1, 3, model.N_MELS, model.SPECTROGRAM_FRAMES}
+	expectedShape := []int{1, 3, model.Nmels, model.SpectrogramFrames}
 	actualShape := preparedTensor.Shape()
 
 	// Check dimensions count
@@ -99,12 +97,12 @@ func TestMultiClass_Inference(t *testing.T) {
 	// 6. Assertions
 	t.Logf("Inference Results: %v", results)
 
-	//Check if map is empty
+	// Check if map is empty
 	if len(results) == 0 {
 		t.Fatal("Inference returned empty result map.")
 	}
 
-	//Check if all expected labels are present
+	// Check if all expected labels are present
 	for _, label := range myModel.Labels {
 		if _, ok := results[label]; !ok {
 			t.Errorf("Missing probability for class: %s", label)

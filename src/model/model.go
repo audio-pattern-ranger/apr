@@ -3,6 +3,7 @@ package model
 import (
 	// DTrack
 	"dtrack/log"
+	"dtrack/ffmpeg"
 
 	// Standard
 	"encoding/json"
@@ -11,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	// 3rd-Party (OLD LIBRARY)
+	// 3rd-Party
 	"github.com/mjibson/go-dsp/fft"
 	"github.com/mjibson/go-dsp/window"
 	"github.com/owulveryck/onnx-go"
@@ -20,13 +21,13 @@ import (
 )
 
 const (
-	SAMPLE_RATE        = 48000
-	AUDIO_LENGTH_BYTES = 192000
-	N_MELS             = 128
-	N_FFT              = 2048
-	HOP_LENGTH         = 512
-	SPECTROGRAM_FRAMES = 188
-	INT16_MAX          = 32768.0
+	SegmentSize       = 2
+	SampleSize        = ffmpeg.BytesPerSecond * SegmentSize
+	Nmels             = 128
+	Nfft              = 2048
+	HopLength         = 512
+	SpectrogramFrames = 188
+	Int16Max          = 32768.0
 )
 
 // OnnxModel holds raw bytes AND the class labels.
@@ -65,7 +66,7 @@ func Load(model_path string) OnnxModel {
 		log.Die("could not parse Labels JSON: %s", err)
 	}
 
-	log.Info("Model loaded with classes: %v", labels)
+	log.Debug("Loaded %s with classes: %v", model_path, labels)
 
 	return OnnxModel{
 		RawBytes: bytes,
@@ -75,15 +76,15 @@ func Load(model_path string) OnnxModel {
 
 // Prepare takes raw audio bytes and converts them to a ready-to-infer tensor (DSP logic).
 func Prepare(pcmData []byte) (*tensor.Dense, error) {
-	// 1. Pad/Truncate the data to ensure fixed length (AUDIO_LENGTH_BYTES)
-	if len(pcmData) < AUDIO_LENGTH_BYTES {
+	// 1. Pad/Truncate the data to ensure fixed length (SampleSize)
+	if len(pcmData) < SampleSize {
 		log.Warn("Audio Underflow; Segment was not large enough!")
-		padding := make([]byte, AUDIO_LENGTH_BYTES-len(pcmData))
+		padding := make([]byte, SampleSize-len(pcmData))
 		pcmData = append(pcmData, padding...)
 	}
-	if len(pcmData) > AUDIO_LENGTH_BYTES {
+	if len(pcmData) > SampleSize {
 		log.Warn("Audio Overflow; Segment was too large!")
-		pcmData = pcmData[:AUDIO_LENGTH_BYTES]
+		pcmData = pcmData[:SampleSize]
 	}
 
 	// 2. Normalize to float64 for DSP
@@ -94,40 +95,40 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 	}
 
 	// 3. STFT Calculation
-	n_frames_calculated := (len(audioFloat64)-N_FFT)/HOP_LENGTH + 1
+	n_frames_calculated := (len(audioFloat64)-Nfft)/HopLength + 1
 
 	// Check for extreme case where calculated frames exceed expected
-	if n_frames_calculated > SPECTROGRAM_FRAMES {
+	if n_frames_calculated > SpectrogramFrames {
 		log.Warn("ML: Calculated frames exceed expected. Using calculated size.")
-		n_frames_calculated = SPECTROGRAM_FRAMES
+		n_frames_calculated = SpectrogramFrames
 	}
 
 	// Calculate bins to keep based on Full Spectrum (Matches Python)
-	bins_to_keep := N_FFT/2 + 1 // 1025 bins
+	bins_to_keep := Nfft/2 + 1 // 1025 bins
 
 	// Create Spectrogram Matrix
 	spectrogram := make([][]float64, bins_to_keep)
 	for i := range spectrogram {
-		spectrogram[i] = make([]float64, SPECTROGRAM_FRAMES)
+		spectrogram[i] = make([]float64, SpectrogramFrames)
 	}
 
-	window_func := window.Hann(N_FFT)
+	window_func := window.Hann(Nfft)
 
 	for i := 0; i < n_frames_calculated; i++ {
-		start := i * HOP_LENGTH
-		end := start + N_FFT
+		start := i * HopLength
+		end := start + Nfft
 		if end > len(audioFloat64) {
 			end = len(audioFloat64)
 		}
 
 		segment := audioFloat64[start:end]
-		windowed := make([]float64, N_FFT)
+		windowed := make([]float64, Nfft)
 		for j := 0; j < len(segment); j++ {
 			windowed[j] = segment[j] * window_func[j]
 		}
 
-		complex_input := make([]complex128, N_FFT)
-		for j := 0; j < N_FFT; j++ {
+		complex_input := make([]complex128, Nfft)
+		for j := 0; j < Nfft; j++ {
 			complex_input[j] = complex(windowed[j], 0)
 		}
 		complex_result := fft.FFT(complex_input)
@@ -141,13 +142,13 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 	}
 
 	// 4. Flatten & Resize
-	power_spec_1D := make([]float64, bins_to_keep*SPECTROGRAM_FRAMES)
+	power_spec_1D := make([]float64, bins_to_keep*SpectrogramFrames)
 	for i := 0; i < bins_to_keep; i++ {
-		copy(power_spec_1D[i*SPECTROGRAM_FRAMES:(i+1)*SPECTROGRAM_FRAMES], spectrogram[i])
+		copy(power_spec_1D[i*SpectrogramFrames:(i+1)*SpectrogramFrames], spectrogram[i])
 	}
 
 	// Resize using Average Pooling
-	rescaled_spec := resizeRowsAvg(power_spec_1D, bins_to_keep, SPECTROGRAM_FRAMES, N_MELS)
+	rescaled_spec := resizeRowsAvg(power_spec_1D, bins_to_keep, SpectrogramFrames, Nmels)
 
 	// 5. Power to DB & Normalize
 	mel_spec_db := powerToDb(rescaled_spec)
@@ -160,7 +161,7 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 	copy(img3Channel[size:size*2], img_normalized)
 	copy(img3Channel[size*2:size*3], img_normalized)
 
-	shape := []int{1, 3, N_MELS, SPECTROGRAM_FRAMES}
+	shape := []int{1, 3, Nmels, SpectrogramFrames}
 
 	inputTensor := tensor.New(
 		tensor.Of(tensor.Float32),
@@ -235,18 +236,18 @@ func softmax(logits []float64) []float64 {
 	return exps
 }
 
-// normalizeAudio converts raw 16-bit PCM bytes into a normalized float32 slice.
+// Convert raw 16-bit PCM bytes into a normalized float32 slice
 func normalizeAudio(pcmData []byte) []float32 {
 	numSamples := len(pcmData) / 2
 	audioArray := make([]float32, numSamples)
 	for i := 0; i < numSamples; i++ {
 		val := int16(uint16(pcmData[i*2]) | uint16(pcmData[i*2+1])<<8)
-		audioArray[i] = float32(val) / INT16_MAX
+		audioArray[i] = float32(val) / Int16Max
 	}
 	return audioArray
 }
 
-// powerToDb converts a power spectrogram to decibels.
+// Convert a power spectrogram to decibels
 func powerToDb(spec []float64) []float64 {
 	dbSpec := make([]float64, len(spec))
 	var maxPower float64 = 0.0
@@ -287,7 +288,6 @@ func minMaxNormalize(dbSpec []float64) []float32 {
 	return img
 }
 
-// resizeRowsAvg: Reverted to Average Pooling
 func resizeRowsAvg(input []float64, originalRows, cols, targetRows int) []float64 {
 	if originalRows == targetRows {
 		return input

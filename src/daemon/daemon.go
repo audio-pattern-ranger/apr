@@ -6,9 +6,6 @@
 package daemon
 
 import (
-	// 3rd-Party
-	"gorgonia.org/tensor"
-
 	// DTrack
 	"dtrack/ffmpeg"
 	"dtrack/log"
@@ -20,6 +17,9 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	// 3rd-Party
+	"gorgonia.org/tensor"
 )
 
 // Segment of WAV data

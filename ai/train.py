@@ -232,10 +232,11 @@ def train_model(model_name, options):
         else:
             epochs_worse += 1
 
-        if epochs_worse >= 30:
-            logging.info('Training patience exhausted')
+        if epochs_worse >= options['train_patience']:
+            logging.info('Training patience exhausted.')
             return num_classes
 
+    logging.info('Training epochs exhausted; check quality of audio samples!')
     return num_classes
 
 
