@@ -8,7 +8,6 @@ import numpy as np
 import torch
 from torch import nn
 import librosa
-import skimage
 
 # DTrack
 import ai.options
@@ -46,7 +45,7 @@ class NoiseDetector(nn.Module):
 
         self.features = nn.Sequential(
             # Block 1: Output (64, 64, 94) - (1/2 size)
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=2),
@@ -139,7 +138,7 @@ def convert(pth, onnx, num_classes):
     logging.info('Converting %s to %s', pth, onnx)
     model = load(pth, num_classes)
     torch.onnx.export(
-        model, torch.randn(1, 3, 128, 188).to(ai.model.CUDA_CPU), onnx,
+        model, torch.randn(1, 1, 128, 188).to(ai.model.CUDA_CPU), onnx,
         input_names=['input'], output_names=['output'], opset_version=20,
         dynamo=False, verbose=False)
 
@@ -176,27 +175,24 @@ def pad_audio(raw_data):
 def audio_to_spectrogram(audio_data):
     '''
     Converts to Power Spectrogram and RESIZES to match
-    the model's expected N_MELS dimension (128 rows).
+    the model's expected N_MELS dimension.
     '''
-    # 1. Power Spectrogram (librosa.stft - Simple Power/Magnitude Squared)
-    s = np.abs(librosa.stft(
-        y=audio_data,
-        n_fft=N_FFT,
-        hop_length=HOP_LENGTH
-    ))**2
+    # Convert audio to Mel Spectrogram and Decibles
+    spectrogram = librosa.feature.melspectrogram(
+            y=audio_data,
+            sr=SAMPLE_RATE,
+            n_fft=N_FFT,
+            hop_length=HOP_LENGTH,
+            n_mels=N_MELS,
+            htk=True,  # htk forces 2595/700 (human hearing) constants
+            fmax=24000.0,  # force nyquist (Must match Go/MaxFreq)
+            fmin=0.0)
+    decibles = librosa.power_to_db(spectrogram, ref=np.max)
 
-    # 2. Resizing (Row downsampling) to match N_MELS (128)
-    # Target shape: (N_MELS, existing columns)
-    s_resized = skimage.transform.resize(
-            s, (N_MELS, s.shape[1]), anti_aliasing=True, preserve_range=True)
+    # Remove lower 80 decibles to prevent "quiet noise"
+    decibles = np.clip(decibles, -80, 0)
+    image = (decibles + 80) / 80
 
-    # 3. Convert Power to Decibels
-    s_db = librosa.power_to_db(s_resized, ref=np.max)
-
-    # 4. Normalize the spectrogram to a 0-1 range
-    img = (s_db - s_db.min()) / (s_db.max() - s_db.min() + 1e-6)
-
-    # 5. Stack the single-channel image to create a 3-channel image
-    img_3_channel = np.stack([img, img, img])
-
-    return torch.tensor(img_3_channel, dtype=torch.float32)
+    # Return single-dimension channel
+    image_e = np.expand_dims(image, axis=0)
+    return torch.tensor(image_e, dtype=torch.float32)

@@ -78,11 +78,10 @@ def check_file(fpath, models):
     for audio in slice_audio(fpath):
         i += 1
         for model, prob in infer_all(models, audio).items():
-            if prob['match'] != 'empty':
-                logging.debug(prob['distribution'])
-                print(
-                        f'Matched {model}/{prob["match"]}'
-                        f'in {fpath.name} @{i}')
+            if prob['match'] == 'empty':
+                continue
+            logging.debug(prob['distribution'])
+            print(f'Matched {model}/{prob["match"]} in {fpath.name} @{i} sec')
 
 
 def slice_audio(path):

@@ -144,8 +144,6 @@ def train_model(model_name, options):
                     min_amplitude=0.001, max_amplitude=0.02, p=0.5),
                 audiomentations.TimeStretch(
                     min_rate=0.8, max_rate=1.2, p=0.5),
-                audiomentations.PitchShift(
-                    min_semitones=-4, max_semitones=4, p=0.5),
                 audiomentations.Shift(
                     min_shift=-0.2, max_shift=0.2, p=0.5),
             ]))
@@ -169,7 +167,7 @@ def train_model(model_name, options):
 
     # Label Smoothing + Weights
     criterion = torch.nn.CrossEntropyLoss(
-            weight=weights_tensor, label_smoothing=0.1)
+            weight=weights_tensor, label_smoothing=0.0)
 
     optimizer = torch.optim.AdamW(
             model.parameters(),

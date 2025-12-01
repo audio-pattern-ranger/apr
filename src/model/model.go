@@ -21,13 +21,22 @@ import (
 )
 
 const (
+	// Number of seconds in each scanned segment
 	SegmentSize       = 2
+
+	// Full size of "check window"
 	SampleSize        = ffmpeg.BytesPerSecond * SegmentSize
+
+	// Spectrogram Values
 	Nmels             = 128
 	Nfft              = 2048
 	HopLength         = 512
 	SpectrogramFrames = 188
 	Int16Max          = 32768.0
+
+	// Frequency Limits
+	MaxFreq = float64(ffmpeg.SampleRate) / 2
+	MinFreq = 0.0
 )
 
 // OnnxModel holds raw bytes AND the class labels.
@@ -104,12 +113,12 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 	}
 
 	// Calculate bins to keep based on Full Spectrum (Matches Python)
-	bins_to_keep := Nfft/2 + 1 // 1025 bins
+	bins_linear := Nfft/2 + 1 // 1025 bins
 
-	// Create Spectrogram Matrix
-	spectrogram := make([][]float64, bins_to_keep)
-	for i := range spectrogram {
-		spectrogram[i] = make([]float64, SpectrogramFrames)
+	// Create Power Spectrogram (bins_linear * frames)
+	powerSpectrogram := make([][]float64, bins_linear)
+	for i := range powerSpectrogram {
+		powerSpectrogram[i] = make([]float64, n_frames_calculated)
 	}
 
 	window_func := window.Hann(Nfft)
@@ -134,39 +143,42 @@ func Prepare(pcmData []byte) (*tensor.Dense, error) {
 		complex_result := fft.FFT(complex_input)
 
 		// Magnitude Square
-		for j := 0; j < bins_to_keep; j++ {
+		for j := 0; j < bins_linear; j++ {
 			val := complex_result[j]
 			magSq := real(val)*real(val) + imag(val)*imag(val)
-			spectrogram[j][i] = magSq
+			powerSpectrogram[j][i] = magSq
 		}
 	}
 
-	// 4. Flatten & Resize
-	power_spec_1D := make([]float64, bins_to_keep*SpectrogramFrames)
-	for i := 0; i < bins_to_keep; i++ {
-		copy(power_spec_1D[i*SpectrogramFrames:(i+1)*SpectrogramFrames], spectrogram[i])
+	// 4. Convert to Mel Spectrogram
+	melSpectrogram := applyMelFilterbank(powerSpectrogram, bins_linear, n_frames_calculated)
+	melDb := powerToDb(melSpectrogram)
+
+	// 5. Normalize for tensor (-80db floor)
+	normalized := fixedNormalize(melDb)
+	flatData := make([]float32, Nmels * SpectrogramFrames)
+
+	idx := 0
+	for r := 0; r < Nmels; r++ {
+		for c := 0; c < SpectrogramFrames; c++ {
+			if c < n_frames_calculated {
+				flatData[idx] = float32(normalized[r][c])
+			} else {
+				//log.Warn("Padding used during data normalization")
+				flatData[idx] = 0.0
+			}
+			idx++
+		}
 	}
 
-	// Resize using Average Pooling
-	rescaled_spec := resizeRowsAvg(power_spec_1D, bins_to_keep, SpectrogramFrames, Nmels)
+	// Final tensor shape: [Batch, Channel, Height, Width]
+	shape := []int{1, 1, Nmels, SpectrogramFrames}
 
-	// 5. Power to DB & Normalize
-	mel_spec_db := powerToDb(rescaled_spec)
-	img_normalized := minMaxNormalize(mel_spec_db)
-
-	// 6. Stack Channels
-	size := len(img_normalized)
-	img3Channel := make([]float32, size*3)
-	copy(img3Channel[:size], img_normalized)
-	copy(img3Channel[size:size*2], img_normalized)
-	copy(img3Channel[size*2:size*3], img_normalized)
-
-	shape := []int{1, 3, Nmels, SpectrogramFrames}
 
 	inputTensor := tensor.New(
 		tensor.Of(tensor.Float32),
 		tensor.WithShape(shape...),
-		tensor.WithBacking(img3Channel),
+		tensor.WithBacking(flatData),
 	)
 
 	return inputTensor, nil
@@ -245,74 +257,4 @@ func normalizeAudio(pcmData []byte) []float32 {
 		audioArray[i] = float32(val) / Int16Max
 	}
 	return audioArray
-}
-
-// Convert a power spectrogram to decibels
-func powerToDb(spec []float64) []float64 {
-	dbSpec := make([]float64, len(spec))
-	var maxPower float64 = 0.0
-	for _, v := range spec {
-		if v > maxPower {
-			maxPower = v
-		}
-	}
-	if maxPower < 1e-10 {
-		maxPower = 1.0
-	}
-	for i, v := range spec {
-		dbSpec[i] = 10.0 * math.Log10(math.Max(v/maxPower, 1e-10))
-	}
-	return dbSpec
-}
-
-func minMaxNormalize(dbSpec []float64) []float32 {
-	var minVal float64 = math.MaxFloat64
-	var maxVal float64 = -math.MaxFloat64
-	for _, v := range dbSpec {
-		if v < minVal {
-			minVal = v
-		}
-		if v > maxVal {
-			maxVal = v
-		}
-	}
-
-	rangeVal := maxVal - minVal
-	if rangeVal < 1e-6 {
-		rangeVal = 1e-6
-	}
-	img := make([]float32, len(dbSpec))
-	for i, v := range dbSpec {
-		img[i] = float32((v - minVal) / rangeVal)
-	}
-	return img
-}
-
-func resizeRowsAvg(input []float64, originalRows, cols, targetRows int) []float64 {
-	if originalRows == targetRows {
-		return input
-	}
-	output := make([]float64, targetRows*cols)
-	ratio := float64(originalRows) / float64(targetRows)
-
-	for c := 0; c < cols; c++ {
-		for r_target := 0; r_target < targetRows; r_target++ {
-			startRow := int(math.Floor(float64(r_target) * ratio))
-			endRow := int(math.Ceil(float64(r_target+1) * ratio))
-			if endRow > originalRows {
-				endRow = originalRows
-			}
-
-			sum := 0.0
-			count := 0
-			for r_orig := startRow; r_orig < endRow; r_orig++ {
-				sum += input[r_orig*cols+c]
-				count++
-			}
-			if count > 0 {
-				output[r_target*cols+c] = sum / float64(count)
-			}
-		}
-	}
-	return output
 }
