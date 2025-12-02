@@ -48,7 +48,8 @@ class AudioDataset(torch.utils.data.Dataset):
 
         # Return Label as LongTensor for CrossEntropyLoss
         spectrogram = ai.model.audio_to_spectrogram(audio)
-        return spectrogram, torch.tensor(label, dtype=torch.long)
+        return spectrogram, torch.tensor(
+                label, dtype=torch.long, device=ai.model.CUDA_CPU)
 
 
 def train_all():
@@ -201,7 +202,8 @@ def train_model(model_name, options):
         for inputs, labels in tqdm.tqdm(
                 train_loader, desc=f'Epoch {epoch} [Train]',
                 leave=False, file=sys.stdout):
-            inputs, labels = inputs.to(dev), labels.to(dev)
+            inputs = inputs.to(dev, non_blocking=True)
+            labels = labels.to(dev, non_blocking=True)
 
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -223,7 +225,8 @@ def train_model(model_name, options):
             for inputs, labels in tqdm.tqdm(
                     val_loader, desc=f'Epoch {epoch} [Check]',
                     leave=False, file=sys.stdout):
-                inputs, labels = inputs.to(dev), labels.to(dev)
+                inputs = inputs.to(dev, non_blocking=True)
+                labels = labels.to(dev, non_blocking=True)
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
