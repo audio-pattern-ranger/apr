@@ -5,7 +5,7 @@ Disturbance Tracker
 Learning learn about and report on local disturbances, using low-end hardware
 that does not need subscription-based services.
 
-**Details and Documentation:** https://mtecknology.github.io/disturbance-tracker/
+**Details and Documentation:** https://rtaas.github.io/disturbance-tracker/
 
 How It Works
 ------------
@@ -15,4 +15,4 @@ How It Works
 3. Train a model from collected recordings
 4. Use trained model for automatic detection
 
-![DTrack Workflow](https://raw.githubusercontent.com/MTecknology/disturbance-tracker/refs/heads/master/docs/_images/workflow.webp)
+![DTrack Workflow](https://raw.githubusercontent.com/RTAAS/disturbance-tracker/refs/heads/master/docs/_images/workflow.webp)
